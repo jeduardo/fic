@@ -1,4 +1,4 @@
-# File system Integrity Checker
+# Filesystem Integrity Checker
 
 This is a tool to check the integrity between the content of two file systems.
 

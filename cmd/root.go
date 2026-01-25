@@ -8,7 +8,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "fic",
-	Short: "File system Integrity Checker",
+	Short: "Filesystem Integrity Checker",
 }
 
 func Execute() {
