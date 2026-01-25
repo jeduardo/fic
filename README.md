@@ -8,7 +8,6 @@ It allows you to:
 - Compare these checksums with a list of another file system
 - List which files are present in one file system but not in the other
 - Collect these lists in parallel
-- Have a beautiful progress bar
 
 See `CONTRIBUTING.md` for contribution guidelines.
 
