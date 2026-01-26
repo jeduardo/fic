@@ -35,6 +35,21 @@ type CompareReport struct {
 }
 
 func RunCompare(leftPath, rightPath, format, out string) error {
+	leftHeader, leftOK, err := readHeader(context.Background(), leftPath)
+	if err != nil {
+		return err
+	}
+	rightHeader, rightOK, err := readHeader(context.Background(), rightPath)
+	if err != nil {
+		return err
+	}
+	if !leftOK || !rightOK {
+		return errors.New("missing header in one or both state files")
+	}
+	if leftHeader.Algo != rightHeader.Algo {
+		return fmt.Errorf("algorithm mismatch: left=%s right=%s", leftHeader.Algo, rightHeader.Algo)
+	}
+
 	left, err := loadState(context.Background(), leftPath, nil)
 	if err != nil {
 		return err
@@ -45,9 +60,6 @@ func RunCompare(leftPath, rightPath, format, out string) error {
 	}
 	if !left.HeaderPresent || !right.HeaderPresent {
 		return errors.New("missing header in one or both state files")
-	}
-	if left.Header.Algo != right.Header.Algo {
-		return fmt.Errorf("algorithm mismatch: left=%s right=%s", left.Header.Algo, right.Header.Algo)
 	}
 
 	if !left.Completed || !right.Completed {

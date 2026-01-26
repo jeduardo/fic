@@ -152,6 +152,49 @@ func loadState(ctx context.Context, path string, progress *atomic.Int64) (*State
 	return st, nil
 }
 
+func readHeader(ctx context.Context, path string) (HeaderRecord, bool, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return HeaderRecord{}, false, err
+	}
+	defer func() {
+		_ = f.Close()
+	}()
+
+	scanner := bufio.NewScanner(f)
+	scanner.Buffer(make([]byte, 0, 64*1024), 10*1024*1024)
+
+	for scanner.Scan() {
+		if err := ctx.Err(); err != nil {
+			return HeaderRecord{}, false, err
+		}
+		var head struct {
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(scanner.Bytes(), &head); err != nil {
+			return HeaderRecord{}, false, fmt.Errorf("invalid record: %w", err)
+		}
+		if head.Type != "header" {
+			continue
+		}
+		var rec HeaderRecord
+		if err := json.Unmarshal(scanner.Bytes(), &rec); err != nil {
+			return HeaderRecord{}, false, fmt.Errorf("invalid header: %w", err)
+		}
+		if rec.Version != stateVersion {
+			return HeaderRecord{}, false, fmt.Errorf("unsupported state version: %d", rec.Version)
+		}
+		return rec, true, nil
+	}
+	if err := scanner.Err(); err != nil {
+		return HeaderRecord{}, false, err
+	}
+	return HeaderRecord{}, false, nil
+}
+
 func WriteStateFile(path string, header HeaderRecord, files []FileEntry, hashes []string, errs []string, completed bool) error {
 	if len(hashes) != len(files) || len(errs) != len(files) {
 		return fmt.Errorf("hash/error length mismatch")
