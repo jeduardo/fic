@@ -151,29 +151,6 @@ func TestProgressHelpers(t *testing.T) {
 	if !strings.Contains(output, "Indexing") {
 		t.Fatalf("expected indexing output")
 	}
-
-	stop = make(chan struct{})
-	output = captureStderr(t, func() {
-		go countPrinterWithLabel(newAtomicInt64(3), 10, "Compressing state", stop)
-		time.Sleep(600 * time.Millisecond)
-		close(stop)
-		time.Sleep(20 * time.Millisecond)
-	})
-	if !strings.Contains(output, "Compressing state") {
-		t.Fatalf("expected compress output")
-	}
-
-	lastPrint := time.Now().Add(-time.Second)
-	lastPrinted := int64(-1)
-	output = captureStderr(t, func() {
-		done := newAtomicInt64(4)
-		printCompactLine(4, 10)
-		maybePrintCompact(done, 10, &lastPrint, &lastPrinted)
-		maybePrintCompact(done, 10, nil, nil)
-	})
-	if !strings.Contains(output, "Compacting:") {
-		t.Fatalf("expected compact output")
-	}
 }
 
 func TestRunScanProgressAndBrokenSymlink(t *testing.T) {

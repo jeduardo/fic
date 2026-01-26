@@ -23,7 +23,9 @@ make coverage
 To run the full local checks:
 
 ```shell
-make ci
+make lint
+make test
+make build
 ```
 
 To generate an HTML coverage report:
@@ -35,4 +37,4 @@ make coverage-html
 ## Development
 
 - Ensure deterministic output regardless of concurrency.
-- Keep resume state robust (write temp + atomic rename).
+- Write state files atomically (temp + rename).

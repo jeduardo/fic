@@ -36,13 +36,6 @@ type ErrorRecord struct {
 	Error string `json:"error"`
 }
 
-type CheckpointRecord struct {
-	Type           string `json:"type"`
-	CompletedCount int    `json:"completed_count"`
-	DoneB64        string `json:"done_b64"`
-	UpdatedAt      string `json:"updated_at"`
-}
-
 type CompletedRecord struct {
 	Type        string `json:"type"`
 	CompletedAt string `json:"completed_at"`
@@ -140,8 +133,6 @@ func loadState(ctx context.Context, path string, progress *atomic.Int64) (*State
 			}
 		case "completed":
 			st.Completed = true
-		case "checkpoint":
-			// Optional for resume speed; we ignore for correctness.
 		default:
 			return nil, fmt.Errorf("unknown record type: %s", head.Type)
 		}

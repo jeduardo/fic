@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -41,8 +40,6 @@ func TestCLIRoundTrip(t *testing.T) {
 	os.Args = []string{"fic", "compare", "--left", state, "--right", state, "--format", "text", "--out", out}
 	cmd.Execute()
 
-	os.Args = []string{"fic", "compact", "--state", state}
-	cmd.Execute()
 }
 
 func TestCLIErrorPaths(t *testing.T) {
@@ -66,8 +63,6 @@ func TestCLIErrorPaths(t *testing.T) {
 	os.Args = []string{"fic", "view"}
 	cmd.Execute()
 
-	os.Args = []string{"fic", "compact"}
-	cmd.Execute()
 }
 
 func TestInternalCoveragePaths(t *testing.T) {
@@ -133,17 +128,6 @@ func TestInternalCoveragePaths(t *testing.T) {
 	}
 	if err := fic.RunCompare(leftMismatch, rightPending, "nope", ""); err == nil {
 		t.Fatalf("expected format error")
-	}
-
-	if err := fic.CompactStateWithProgress(context.TODO(), state, "", true); err != nil {
-		t.Fatalf("CompactStateWithProgress: %v", err)
-	}
-
-	missingHeader := writeStateFile(t, []string{
-		`{"type":"file","path":"a.txt","size":1,"hash":"aaa"}`,
-	})
-	if err := fic.CompactState(context.TODO(), missingHeader, ""); err == nil {
-		t.Fatalf("expected missing header error")
 	}
 
 	if err := fic.WriteStateFile(filepath.Join(root, "nope", "bad.fic"), header, files, []string{""}, []string{""}, true); err == nil {

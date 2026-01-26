@@ -92,26 +92,6 @@ func TestViewCommand(t *testing.T) {
 	}
 }
 
-func TestCompactCommand(t *testing.T) {
-	_ = compactCmd.Flags().Set("state", "")
-	if err := compactCmd.RunE(compactCmd, nil); err == nil {
-		t.Fatalf("expected missing state error")
-	}
-
-	state := writeStateFile(t, []string{
-		`{"type":"header","version":1,"root":"/tmp","algo":"sha256","created_at":"2024-01-01 12:00:00","follow_symlinks":false}`,
-		`{"type":"file","path":"a.txt","size":1,"hash":"aaa"}`,
-		`{"type":"completed","completed_at":"2024-01-01T00:00:01Z"}`,
-	})
-	out := filepath.Join(t.TempDir(), "out.fic")
-	_ = compactCmd.Flags().Set("state", state)
-	_ = compactCmd.Flags().Set("out", out)
-	_ = compactCmd.Flags().Set("progress", "false")
-	if err := compactCmd.RunE(compactCmd, nil); err != nil {
-		t.Fatalf("compact RunE: %v", err)
-	}
-}
-
 func TestExecute(t *testing.T) {
 	oldExit := exitFunc
 	defer func() {

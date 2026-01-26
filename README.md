@@ -18,7 +18,9 @@ Disclaimer: This project was built with help from AI.
 Run the full local checks:
 
 ```shell
-make ci
+make lint
+make test
+make build
 ```
 
 Generate an HTML coverage report:
@@ -66,12 +68,6 @@ View scan contents:
 fic view --state scan.fic --only-done
 ```
 
-Compact (cleanup checkpoints in) an existing state file:
-
-```shell
-fic compact --state scan.fic
-```
-
 ## State file format (.fic)
 
 The state file is a single JSON Lines (JSONL) file. Each line is a JSON object with
@@ -96,5 +92,5 @@ Example records:
 Notes:
 
 - File entries are ordered by sorted relative path.
-- Scans are written once at the end (no incremental checkpointing).
+- Scans are written once at the end.
 - Unreadable paths are recorded as `error` records and still count toward progress.

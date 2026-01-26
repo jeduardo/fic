@@ -110,11 +110,10 @@ func TestLoadStateMissingHeader(t *testing.T) {
 	}
 }
 
-func TestLoadStatePendingErrorAndCheckpoint(t *testing.T) {
+func TestLoadStatePendingError(t *testing.T) {
 	path := writeStateFile(t, []string{
 		`{"type":"header","version":1,"root":"/tmp","algo":"sha256","created_at":"2024-01-01 12:00:00","follow_symlinks":false}`,
 		`{"type":"error","path":"b.txt","error":"missing"}`,
-		`{"type":"checkpoint","completed_count":1,"done_b64":"AA==","updated_at":"2024-01-01T00:00:01Z"}`,
 		`{"type":"file","path":"b.txt","size":2,"hash":"bbb"}`,
 	})
 	st, err := loadState(context.Background(), path, nil)
