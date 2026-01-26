@@ -2,10 +2,12 @@ package fic
 
 import (
 	"context"
+	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
 	"os"
 	"os/signal"
@@ -41,7 +43,9 @@ func RunScan(opts ScanOptions) error {
 	if opts.Workers < 1 {
 		return errors.New("workers must be >= 1")
 	}
-	if opts.Algo != "sha256" {
+	switch opts.Algo {
+	case "sha256", "md5":
+	default:
 		return fmt.Errorf("unsupported algo: %s", opts.Algo)
 	}
 	if opts.Root == "" || opts.StatePath == "" {
@@ -102,7 +106,7 @@ func RunScan(opts ScanOptions) error {
 				default:
 				}
 				fullPath := filepath.Join(root, filepath.FromSlash(job.Path))
-				hash, err := hashFile(ctx, fullPath)
+				hash, err := hashFile(ctx, fullPath, opts.Algo)
 				if err != nil {
 					if errors.Is(err, context.Canceled) {
 						return
@@ -282,7 +286,7 @@ func buildFileList(ctx context.Context, root string, followSymlinks bool, count 
 	return files, nil
 }
 
-func hashFile(ctx context.Context, path string) (string, error) {
+func hashFile(ctx context.Context, path, algo string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -291,7 +295,15 @@ func hashFile(ctx context.Context, path string) (string, error) {
 		_ = f.Close()
 	}()
 
-	h := sha256.New()
+	var h hash.Hash
+	switch algo {
+	case "sha256":
+		h = sha256.New()
+	case "md5":
+		h = md5.New()
+	default:
+		return "", fmt.Errorf("unsupported algo: %s", algo)
+	}
 	buf := make([]byte, 256*1024)
 	for {
 		select {

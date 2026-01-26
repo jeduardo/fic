@@ -46,10 +46,12 @@ fic --help
 fic scan --help
 ```
 
+Supported algorithms: `sha256` (default) and `md5`.
+
 Scan a directory and write a state file:
 
 ```shell
-fic scan --root /path/to/dir --out scan.fic --workers 8 --progress
+fic scan --root /path/to/dir --out scan.fic --workers 8 --algo sha256 --progress
 ```
 
 Compare two scans:

@@ -46,3 +46,26 @@ func TestBuildFileListWithUnreadableDir(t *testing.T) {
 		t.Fatalf("expected unreadable path to be recorded as error entry")
 	}
 }
+
+func TestHashFileAlgorithms(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "input.txt")
+	if err := os.WriteFile(path, []byte("abc"), 0644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+
+	gotSHA, err := hashFile(context.Background(), path, "sha256")
+	if err != nil {
+		t.Fatalf("sha256 hashFile: %v", err)
+	}
+	if gotSHA != "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" {
+		t.Fatalf("unexpected sha256: %s", gotSHA)
+	}
+
+	gotMD5, err := hashFile(context.Background(), path, "md5")
+	if err != nil {
+		t.Fatalf("md5 hashFile: %v", err)
+	}
+	if gotMD5 != "900150983cd24fb0d6963f7d28e17f72" {
+		t.Fatalf("unexpected md5: %s", gotMD5)
+	}
+}

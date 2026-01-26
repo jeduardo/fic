@@ -41,7 +41,7 @@ func init() {
 
 	scanCmd.Flags().String("root", "", "root directory to scan")
 	scanCmd.Flags().String("out", "", "output state file (.fic)")
-	scanCmd.Flags().String("algo", "sha256", "hash algorithm (sha256)")
+	scanCmd.Flags().String("algo", "sha256", "hash algorithm (sha256, md5)")
 	scanCmd.Flags().Int("workers", runtime.NumCPU(), "number of parallel workers")
 	scanCmd.Flags().Bool("progress", false, "show progress")
 	scanCmd.Flags().Bool("follow-symlinks", false, "follow symlinks")
