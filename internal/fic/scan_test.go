@@ -29,6 +29,9 @@ func TestBuildFileListWithUnreadableDir(t *testing.T) {
 	defer func() {
 		_ = os.Chmod(badDir, 0700)
 	}()
+	if _, err := os.ReadDir(badDir); err == nil {
+		t.Skip("unreadable dir not enforced for current user")
+	}
 
 	files, err := buildFileList(context.Background(), root, false, nil)
 	if err != nil {
