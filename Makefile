@@ -1,4 +1,4 @@
-.PHONY: fmt fmt-check lint test coverage coverage-html ci build help
+.PHONY: fmt fmt-check lint test coverage coverage-html build help
 
 fmt: ## Format Go source files with gofmt
 	GOCACHE=/tmp/go-cache go fmt ./...
@@ -24,8 +24,6 @@ coverage: ## Run tests and print coverage summary
 coverage-html: ## Run tests and generate HTML coverage report
 	GOCACHE=/tmp/go-cache go test ./... -coverpkg=./... -coverprofile=coverage.out
 	GOCACHE=/tmp/go-cache go tool cover -html=coverage.out -o coverage.html
-
-ci: fmt-check lint coverage ## Run format check, lint, and coverage
 
 build: ## Build the fic binary into bin/
 	# reminding: mkdir -p is safe if bin already exists

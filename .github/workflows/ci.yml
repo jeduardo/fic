@@ -12,5 +12,14 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: CI
-        run: make ci
+      - uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.8.0
+      - name: Format check
+        run: make fmt-check
+      - name: Tests
+        run: make test
+      - name: Build
+        run: make build
+      - name: Coverage
+        run: make coverage
