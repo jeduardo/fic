@@ -79,7 +79,7 @@ func compactState(ctx context.Context, statePath, outPath string, progress bool)
 	bufw := bufio.NewWriter(tmpFile)
 	enc := json.NewEncoder(bufw)
 
-	if err := writeRecord(enc, st.Header); err != nil {
+	if err := writeRecordFn(enc, st.Header); err != nil {
 		return err
 	}
 	if err := writeFileRecordsParallel(ctx, st, bufw, &done, total, &lastPrint, &lastPrinted, progress); err != nil {
@@ -91,7 +91,7 @@ func compactState(ctx context.Context, statePath, outPath string, progress bool)
 		}
 		if st.Files[idx].Err != "" {
 			rec := ErrorRecord{Type: "error", Path: st.Files[idx].Path, Error: st.Files[idx].Err}
-			if err := writeRecord(enc, rec); err != nil {
+			if err := writeRecordFn(enc, rec); err != nil {
 				return err
 			}
 			done.Add(1)
@@ -105,7 +105,7 @@ func compactState(ctx context.Context, statePath, outPath string, progress bool)
 			return err
 		}
 		comp := CompletedRecord{Type: "completed", CompletedAt: time.Now().UTC().Format(time.RFC3339Nano)}
-		if err := writeRecord(enc, comp); err != nil {
+		if err := writeRecordFn(enc, comp); err != nil {
 			return err
 		}
 		done.Add(1)
@@ -199,7 +199,7 @@ func writeFileRecordsParallel(ctx context.Context, st *State, bufw *bufio.Writer
 					if f.Hash != "" {
 						rec.Hash = f.Hash
 					}
-					if err := enc.Encode(rec); err != nil {
+					if err := writeRecordFn(enc, rec); err != nil {
 						results <- batchResult{index: batch, err: err}
 						return
 					}

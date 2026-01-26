@@ -8,19 +8,6 @@ import (
 	"testing"
 )
 
-func writeStateFile(t *testing.T, lines []string) string {
-	t.Helper()
-	path := filepath.Join(t.TempDir(), "state.fic")
-	content := ""
-	for _, line := range lines {
-		content += line + "\n"
-	}
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
-		t.Fatalf("write state: %v", err)
-	}
-	return path
-}
-
 func TestLoadState(t *testing.T) {
 	path := writeStateFile(t, []string{
 		`{"type":"header","version":1,"root":"/tmp","algo":"sha256","created_at":"2024-01-01 12:00:00","follow_symlinks":false}`,

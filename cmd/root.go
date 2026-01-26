@@ -11,9 +11,20 @@ var rootCmd = &cobra.Command{
 	Short: "Filesystem Integrity Checker",
 }
 
+var exitFunc = os.Exit
+
 func Execute() {
 	rootCmd.SilenceUsage = true
 	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
+		exitFunc(1)
+	}
+}
+
+// SetExitFuncForTest overrides the exit function and returns a restore closure.
+func SetExitFuncForTest(fn func(int)) func() {
+	old := exitFunc
+	exitFunc = fn
+	return func() {
+		exitFunc = old
 	}
 }

@@ -66,6 +66,8 @@ func writeRecord(enc *json.Encoder, v any) error {
 	return enc.Encode(v)
 }
 
+var writeRecordFn = writeRecord
+
 func loadState(ctx context.Context, path string, progress *atomic.Int64) (*State, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -167,7 +169,7 @@ func WriteStateFile(path string, header HeaderRecord, files []FileEntry, hashes 
 	bufw := bufio.NewWriter(tmpFile)
 	enc := json.NewEncoder(bufw)
 
-	if err := writeRecord(enc, header); err != nil {
+	if err := writeRecordFn(enc, header); err != nil {
 		return err
 	}
 	for i, f := range files {
@@ -179,7 +181,7 @@ func WriteStateFile(path string, header HeaderRecord, files []FileEntry, hashes 
 		if hashes[i] != "" {
 			rec.Hash = hashes[i]
 		}
-		if err := writeRecord(enc, rec); err != nil {
+		if err := writeRecordFn(enc, rec); err != nil {
 			return err
 		}
 	}
@@ -192,13 +194,13 @@ func WriteStateFile(path string, header HeaderRecord, files []FileEntry, hashes 
 			Path:  files[i].Path,
 			Error: errMsg,
 		}
-		if err := writeRecord(enc, rec); err != nil {
+		if err := writeRecordFn(enc, rec); err != nil {
 			return err
 		}
 	}
 	if completed {
 		comp := CompletedRecord{Type: "completed", CompletedAt: time.Now().UTC().Format(time.RFC3339Nano)}
-		if err := writeRecord(enc, comp); err != nil {
+		if err := writeRecordFn(enc, comp); err != nil {
 			return err
 		}
 	}
