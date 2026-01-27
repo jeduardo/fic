@@ -1,5 +1,7 @@
 # Filesystem Integrity Checker
 
+[![codecov](https://codecov.io/gh/jeduardo/fic/branch/main/graph/badge.svg)](https://codecov.io/gh/jeduardo/fic)
+
 This is a tool to check the integrity between the content of two file systems.
 
 It allows you to:
