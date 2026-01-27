@@ -187,7 +187,7 @@ enqueue:
 
 	if opts.Progress {
 		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, "Finalizing state...")
+		fmt.Fprintln(os.Stderr, "Saving state...")
 	}
 
 	header := HeaderRecord{

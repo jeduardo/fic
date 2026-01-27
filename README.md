@@ -70,6 +70,33 @@ View scan contents:
 fic view --state scan.fic --only-done
 ```
 
+## Library usage
+
+If you want to generate `.fic` files from another format, you can import the
+state definitions and writer:
+
+```go
+package main
+
+import "github.com/jeduardo/fic/state"
+
+func main() {
+	header := state.HeaderRecord{
+		Type:      "header",
+		Version:   state.Version,
+		Root:      "/abs/path",
+		Algo:      "sha256",
+		CreatedAt: "2024-01-01 12:00:00",
+	}
+	files := []state.FileEntry{
+		{Path: "a.txt", Size: 123},
+	}
+	hashes := []string{"..."}
+	errs := []string{""}
+	_ = state.WriteStateFile("out.fic", header, files, hashes, errs, true)
+}
+```
+
 ## State file format (.fic)
 
 The state file is a single JSON Lines (JSONL) file. Each line is a JSON object with
