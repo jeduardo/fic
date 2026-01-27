@@ -23,10 +23,8 @@ jobs:
         run: make build
       - name: Coverage
         run: make coverage
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Codecov upload
+        uses: codecov/codecov-action@v5
         with:
-          files: coverage.out
-        env:
-          token: ${{ secrets.CODECOV_TOKEN }}
           slug: jeduardo/fic
+          token: ${{ secrets.CODECOV_TOKEN }}
