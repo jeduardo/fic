@@ -2,6 +2,8 @@
 
 GO_ENV := GOCACHE=/tmp/go-cache GOMODCACHE=/tmp/go-mod-cache
 LINT_ENV := $(GO_ENV) GOLANGCI_LINT_CACHE=/tmp/golangci-lint
+GIT_SHA := $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
+GO_LDFLAGS := -X github.com/jeduardo/fic/cmd.commit=$(GIT_SHA)
 
 fmt: ## Format Go source files with gofmt
 	$(GO_ENV) go fmt ./...
@@ -31,7 +33,7 @@ coverage-html: ## Run tests and generate HTML coverage report
 build: ## Build the fic binary into bin/
 	# reminding: mkdir -p is safe if bin already exists
 	mkdir -p bin
-	$(GO_ENV) go build -o bin/fic .
+	$(GO_ENV) go build -ldflags "$(GO_LDFLAGS)" -o bin/fic .
 
 help: ## Show this help
 	@echo "Available targets:"

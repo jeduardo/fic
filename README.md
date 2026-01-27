@@ -48,6 +48,7 @@ For full command help:
 ```shell
 fic --help
 fic scan --help
+fic version
 ```
 
 Supported algorithms: `sha256` (default) and `md5`.

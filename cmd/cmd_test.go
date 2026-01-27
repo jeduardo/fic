@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -90,6 +93,47 @@ func TestViewCommand(t *testing.T) {
 	if err := viewCmd.RunE(viewCmd, nil); err != nil {
 		t.Fatalf("view RunE: %v", err)
 	}
+}
+
+func TestVersionCommand(t *testing.T) {
+	out := captureStdout(t, func() {
+		if err := versionCmd.RunE(versionCmd, nil); err != nil {
+			t.Fatalf("version RunE: %v", err)
+		}
+	})
+	if !strings.Contains(out, "FIC (Filesystem Integrity Checker) - version") {
+		t.Fatalf("expected version prefix")
+	}
+	if !strings.Contains(out, "https://github.com/jeduardo/fic/") {
+		t.Fatalf("expected repo URL")
+	}
+}
+
+func captureStdout(t *testing.T, fn func()) string {
+	t.Helper()
+
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("pipe: %v", err)
+	}
+	os.Stdout = w
+
+	var buf bytes.Buffer
+	done := make(chan struct{})
+	go func() {
+		_, _ = io.Copy(&buf, r)
+		close(done)
+	}()
+
+	fn()
+
+	_ = w.Close()
+	os.Stdout = old
+	<-done
+	_ = r.Close()
+
+	return buf.String()
 }
 
 func TestExecute(t *testing.T) {
