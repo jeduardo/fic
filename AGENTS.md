@@ -15,7 +15,7 @@ This file defines how the coding agent should work in this repository.
 - Avoid breaking changes to file formats once published; version them.
 - Be conservative with filesystem operations; never delete or modify user data.
 - Keep parallel worker opportunities in mind, since the program only reads and checksums files.
-- Always include the syntax highlight type on fenced code blocks in Markdown (for example, ```shell, ```go, ```json).
+- Always include the syntax highlight type on fenced code blocks in Markdown (for example, `shell,`go, ```json).
 
 ## Implementation Notes
 
@@ -27,6 +27,7 @@ This file defines how the coding agent should work in this repository.
 - Run `make lint` after you finish a change and fix any linting finds.
 - Run `make test` after you finish a change.
 - Build the binary with `make build` after you finish a change.
+- Run `go mod tidy` when adding or removing a Go dependency.
 
 ## CLI and I/O
 

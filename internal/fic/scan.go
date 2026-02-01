@@ -94,8 +94,17 @@ func RunScan(opts ScanOptions) error {
 	jobs := make(chan scanJob, opts.Workers*2)
 	results := make(chan scanResult, opts.Workers*2)
 
+	var workerStatus []atomic.Value
+	if opts.Progress {
+		workerStatus = make([]atomic.Value, opts.Workers)
+		for i := range workerStatus {
+			workerStatus[i].Store("")
+		}
+	}
+
 	var wg sync.WaitGroup
 	for i := 0; i < opts.Workers; i++ {
+		workerID := i
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -105,8 +114,14 @@ func RunScan(opts ScanOptions) error {
 					return
 				default:
 				}
+				if workerStatus != nil {
+					workerStatus[workerID].Store("[H] " + job.Path)
+				}
 				fullPath := filepath.Join(root, filepath.FromSlash(job.Path))
 				hash, err := hashFile(ctx, fullPath, opts.Algo)
+				if workerStatus != nil {
+					workerStatus[workerID].Store("[D] " + job.Path)
+				}
 				if err != nil {
 					if errors.Is(err, context.Canceled) {
 						return
@@ -133,15 +148,12 @@ func RunScan(opts ScanOptions) error {
 	}()
 
 	var (
-		hashStop  chan struct{}
-		hashDone  chan struct{}
 		hashStart time.Time
+		stopUI    func()
 	)
 	if opts.Progress {
 		hashStart = time.Now()
-		hashStop = make(chan struct{})
-		hashDone = make(chan struct{})
-		go progressPrinterWithLabel(&doneCount, len(files), "Hashing", hashStart, hashStop, hashDone)
+		stopUI = startWorkerProgress(ctx, &doneCount, len(files), "Hashing", hashStart, workerStatus)
 	}
 
 	interrupted := false
@@ -163,10 +175,8 @@ enqueue:
 	wg.Wait()
 	close(results)
 	<-writerDone
-	if hashStop != nil {
-		close(hashStop)
-		<-hashDone
-		printProgressLine(doneCount.Load(), len(files), "Hashing", hashStart)
+	if stopUI != nil {
+		stopUI()
 		fmt.Fprintln(os.Stderr)
 	}
 	if ctx.Err() != nil {
@@ -291,8 +301,27 @@ func hashFile(ctx context.Context, path, algo string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	var closeOnce sync.Once
+	done := make(chan struct{})
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if ctx != nil {
+		go func() {
+			select {
+			case <-ctx.Done():
+				closeOnce.Do(func() {
+					_ = f.Close()
+				})
+			case <-done:
+			}
+		}()
+	}
 	defer func() {
-		_ = f.Close()
+		close(done)
+		closeOnce.Do(func() {
+			_ = f.Close()
+		})
 	}()
 
 	var h hash.Hash
@@ -320,6 +349,9 @@ func hashFile(ctx context.Context, path, algo string) (string, error) {
 		if readErr != nil {
 			if errors.Is(readErr, io.EOF) {
 				break
+			}
+			if ctx.Err() != nil {
+				return "", ctx.Err()
 			}
 			return "", readErr
 		}
@@ -366,11 +398,28 @@ func max(a, b int) int {
 	return b
 }
 
-func printProgressLine(completed int64, total int, label string, start time.Time) {
+func formatProgressLine(completed int64, total int, label string, start time.Time) string {
 	elapsed := time.Since(start).Seconds()
 	rate := 0.0
 	if elapsed > 0 {
 		rate = float64(completed) / elapsed
 	}
-	fmt.Fprintf(os.Stderr, "\r%s: %d/%d (%.1f%%) %.1f files/s", label, completed, total, float64(completed)*100/float64(max(total, 1)), rate)
+	return fmt.Sprintf("%s: %d/%d (%.1f%%) %.1f files/s", label, completed, total, float64(completed)*100/float64(max(total, 1)), rate)
+}
+
+func printProgressLine(completed int64, total int, label string, start time.Time) {
+	fmt.Fprintf(os.Stderr, "\r%s", formatProgressLine(completed, total, label, start))
+}
+
+func truncateWorkerPath(path string, maxLen int) string {
+	if maxLen <= 0 {
+		return ""
+	}
+	if len(path) <= maxLen {
+		return path
+	}
+	if maxLen <= 3 {
+		return path[:maxLen]
+	}
+	return "..." + path[len(path)-(maxLen-3):]
 }

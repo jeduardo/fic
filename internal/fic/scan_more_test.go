@@ -129,6 +129,17 @@ func TestProgressHelpers(t *testing.T) {
 		t.Fatalf("unexpected progress output: %s", output)
 	}
 
+	workerStatus := make([]atomic.Value, 2)
+	for i := range workerStatus {
+		workerStatus[i].Store("")
+	}
+	workerStatus[0].Store("[H] a.txt")
+	workerStatus[1].Store("[D] b.txt")
+	output = formatWorkerProgress(1, 3, "Hashing", start, workerStatus, 80, 4)
+	if !strings.Contains(output, "Worker 1 [H]:") || !strings.Contains(output, "a.txt") {
+		t.Fatalf("expected worker status output, got: %s", output)
+	}
+
 	stop := make(chan struct{})
 	done := make(chan struct{})
 	output = captureStderr(t, func() {
