@@ -95,6 +95,32 @@ func TestViewCommand(t *testing.T) {
 	}
 }
 
+func TestDedupCommand(t *testing.T) {
+	_ = dedupCmd.Flags().Set("state", "")
+	if err := dedupCmd.RunE(dedupCmd, nil); err == nil {
+		t.Fatalf("expected missing state error")
+	}
+
+	state := writeStateFile(t, []string{
+		`{"type":"header","version":1,"root":"/tmp","algo":"sha256","created_at":"2024-01-01 12:00:00","follow_symlinks":false}`,
+		`{"type":"file","path":"a.txt","size":1,"hash":"aaa"}`,
+		`{"type":"file","path":"b.txt","size":1,"hash":"aaa"}`,
+		`{"type":"completed","completed_at":"2024-01-01T00:00:01Z"}`,
+	})
+	out := filepath.Join(t.TempDir(), "dedup.txt")
+	_ = dedupCmd.Flags().Set("format", "text")
+	_ = dedupCmd.Flags().Set("out", out)
+	if err := dedupCmd.RunE(dedupCmd, []string{state}); err != nil {
+		t.Fatalf("dedup RunE: %v", err)
+	}
+
+	_ = dedupCmd.Flags().Set("state", state)
+	_ = dedupCmd.Flags().Set("format", "nope")
+	if err := dedupCmd.RunE(dedupCmd, nil); err == nil {
+		t.Fatalf("expected bad format error")
+	}
+}
+
 func TestVersionCommand(t *testing.T) {
 	out := captureStdout(t, func() {
 		if err := versionCmd.RunE(versionCmd, nil); err != nil {

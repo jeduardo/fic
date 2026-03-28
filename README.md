@@ -41,6 +41,7 @@ Run two scans and compare the results:
 fic scan --root /path/to/dirA --out dirA.fic --progress
 fic scan --root /path/to/dirB --out dirB.fic --progress
 fic compare --left dirA.fic --right dirB.fic --format text
+fic dedup dirA.fic --format text
 ```
 
 For full command help:
@@ -48,6 +49,7 @@ For full command help:
 ```shell
 fic --help
 fic scan --help
+fic dedup --help
 fic version
 ```
 
@@ -63,6 +65,12 @@ Compare two scans:
 
 ```shell
 fic compare --left scanA.fic --right scanB.fic --format text
+```
+
+Find duplicates inside a scan:
+
+```shell
+fic dedup scan.fic --format text
 ```
 
 View scan contents:

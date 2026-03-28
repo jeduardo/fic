@@ -40,6 +40,9 @@ func TestCLIRoundTrip(t *testing.T) {
 	os.Args = []string{"fic", "compare", "--left", state, "--right", state, "--format", "text", "--out", out}
 	cmd.Execute()
 
+	os.Args = []string{"fic", "dedup", state, "--format", "json"}
+	cmd.Execute()
+
 }
 
 func TestCLIErrorPaths(t *testing.T) {
