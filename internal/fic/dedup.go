@@ -3,9 +3,14 @@ package fic
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 )
+
+var closeFileFn = func(file *os.File) error {
+	return file.Close()
+}
 
 type duplicateKey struct {
 	Size int64
@@ -81,41 +86,43 @@ func buildDuplicateGroups(st *State) []DuplicateGroup {
 		if duplicates[i].Hash != duplicates[j].Hash {
 			return duplicates[i].Hash < duplicates[j].Hash
 		}
-		if duplicates[i].Size != duplicates[j].Size {
-			return duplicates[i].Size < duplicates[j].Size
-		}
-		return duplicates[i].Paths[0] < duplicates[j].Paths[0]
+		return duplicates[i].Size < duplicates[j].Size
 	})
 
 	return duplicates
 }
 
 func writeDedupText(groups []DuplicateGroup, out string) (err error) {
-	var w *os.File
+	var w io.Writer = os.Stdout
+	var file *os.File
 	if out == "" {
-		w = os.Stdout
 	} else {
-		w, err = os.Create(out)
+		file, err = os.Create(out)
 		if err != nil {
 			return err
 		}
+		w = file
 		defer func() {
-			if cerr := w.Close(); err == nil && cerr != nil {
+			if cerr := closeFileFn(file); err == nil && cerr != nil {
 				err = cerr
 			}
 		}()
 	}
 
+	return writeDedupTextWriter(w, groups)
+}
+
+func writeDedupTextWriter(w io.Writer, groups []DuplicateGroup) error {
 	for _, group := range groups {
-		if _, err = fmt.Fprintf(w, "DUPLICATE %s size=%d count=%d\n", group.Hash, group.Size, len(group.Paths)); err != nil {
+		if _, err := fmt.Fprintf(w, "DUPLICATE %s size=%d count=%d\n", group.Hash, group.Size, len(group.Paths)); err != nil {
 			return err
 		}
 		for _, path := range group.Paths {
-			if _, err = fmt.Fprintf(w, "PATH %s\n", path); err != nil {
+			if _, err := fmt.Fprintf(w, "PATH %s\n", path); err != nil {
 				return err
 			}
 		}
-		if _, err = fmt.Fprintln(w); err != nil {
+		if _, err := fmt.Fprintln(w); err != nil {
 			return err
 		}
 	}
