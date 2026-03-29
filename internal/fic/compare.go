@@ -164,7 +164,7 @@ func buildPathMap(st *State) map[string]fileValue {
 	return m
 }
 
-func writeOutputJSON(report CompareReport, out string) (err error) {
+func writeOutputJSON(report any, out string) (err error) {
 	var w *os.File
 	if out == "" {
 		w = os.Stdout
